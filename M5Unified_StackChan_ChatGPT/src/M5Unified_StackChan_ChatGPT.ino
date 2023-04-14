@@ -14,9 +14,10 @@
 #include <ArduinoJson.h>
 #include <ESP32WebServer.h>
 #include <ESPmDNS.h>
+#include "config.hpp"
 
-const char *SSID = "YOUR_WIFI_SSID";
-const char *PASSWORD = "YOUR_WIFI_PASSWORD";
+const char *SSID = WIFI_SSID;
+const char *PASSWORD = WIFI_PASSWORD;
 
 #define USE_SERVO
 #ifdef USE_SERVO
@@ -103,8 +104,10 @@ String https_post_json(const char* url, const char* json_string, const char* roo
       if (https.begin(*client, url)) {  // HTTPS
         Serial.print("[HTTPS] POST...\n");
         // start connection and send HTTP header
+        std::string authorization_type = "Bearer ";
+        std::string openai_api_key = OPENAI_API_KEY;
         https.addHeader("Content-Type", "application/json");
-        https.addHeader("Authorization", "Bearer YOUR_API_KEY");
+        https.addHeader("Authorization", (authorization_type + openai_api_key).c_str());
         int httpCode = https.POST((uint8_t *)json_string, strlen(json_string));
   
         // httpCode will be negative on error
