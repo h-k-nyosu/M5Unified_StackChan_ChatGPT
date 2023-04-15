@@ -1,3 +1,6 @@
+#ifndef MY_HTTP_HANDLERS_H
+#define MY_HTTP_HANDLERS_H
+
 #pragma once
 
 #include <ESP32WebServer.h>
@@ -17,3 +20,5 @@ void handleNotFound();
 void handle_speech();
 void handle_chat();
 void handle_face();
+
+#endif
