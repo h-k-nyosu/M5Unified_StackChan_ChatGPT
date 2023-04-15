@@ -4,7 +4,7 @@
 #include <AudioOutput.h>
 #include <AudioFileSourceBuffer.h>
 #include <AudioGeneratorMP3.h>
-#include "AudioFileSourceVoiceTextStream.h"
+#include "AudioFileSourceVoiceTextStream/AudioFileSourceVoiceTextStream.h"
 #include "AudioOutputM5Speaker.h"
 #include <ServoEasing.hpp> // https://github.com/ArminJo/ServoEasing       
 
@@ -14,7 +14,7 @@
 #include <ArduinoJson.h>
 #include <ESP32WebServer.h>
 #include <ESPmDNS.h>
-#include "config.hpp"
+#include "config/config.hpp"
 
 const char *SSID = WIFI_SSID;
 const char *PASSWORD = WIFI_PASSWORD;
@@ -96,7 +96,6 @@ String https_post_json(const char* url, const char* json_string, const char* roo
   if(client) {
     client -> setCACert(root_ca);
     {
-      // Add a scoping block for HTTPClient https to make sure it is destroyed before WiFiClientSecure *client is 
       HTTPClient https;
       https.setTimeout( 60000 ); 
   
@@ -137,7 +136,6 @@ String https_post_json(const char* url, const char* json_string, const char* roo
 
 String chatGpt(String json_string) {
   String response = "";
-//  String json_string = "{\"model\": \"gpt-3.5-turbo\",\"messages\": [{\"role\": \"user\", \"content\": \"" + text + "\"},{\"role\": \"system\", \"content\": \"あなたは「スタックちゃん」と言う名前の小型ロボットとして振る舞ってください。\"},{\"role\": \"system\", \"content\": \"あなたはの使命は人々の心を癒すことです。\"},{\"role\": \"system\", \"content\": \"幼い子供の口調で話してください。\"}]}";
   avatar.setExpression(Expression::Doubt);
   avatar.setSpeechText("考え中…");
   String ret = https_post_json("https://api.openai.com/v1/chat/completions", json_string.c_str(), root_ca_openai);
@@ -177,16 +175,7 @@ void handle_chat() {
   static String response = "";
   String text = server.arg("text");
   String json_string = "{\"model\": \"gpt-3.5-turbo\",\"messages\": [{\"role\": \"user\", \"content\": \"" + text + "\"}]}";
-/*  String json_string =
-  "{\"model\": \"gpt-3.5-turbo\",\
-   \"messages\": [\
-                  {\"role\": \"user\", \"content\": \"" + text + "\"},\
-                  {\"role\": \"system\", \"content\": \"あなたは「スタックちゃん」と言う名前の小型ロボットとして振る舞ってください。\"},\
-                  {\"role\": \"system\", \"content\": \"あなたはの使命は人々の心を癒すことです。\"},\
-                  {\"role\": \"system\", \"content\": \"幼い子供の口調で話してください。\"},\
-                  {\"role\": \"system\", \"content\": \"あなたの友達はロボハチマルハチマルさんです。\"},\
-                  {\"role\": \"system\", \"content\": \"語尾には「だよ｝をつけて話してください。\"}\
-                ]}";*/
+
   response = chatGpt(json_string);
   speech_text = response;
   server.send(200, "text/html", String(HEAD)+String("<body>")+response+String("</body>"));
@@ -322,13 +311,8 @@ void Servo_setup() {
 #endif
 }
 
-// char *text1 = "私の名前はスタックチャンです、よろしくね。";
-// char *text2 = "こんにちは、世界！";
-// char *tts_parms1 ="&emotion_level=2&emotion=happiness&format=mp3&speaker=hikari&volume=200&speed=120&pitch=130";
-// char *tts_parms2 ="&emotion_level=2&emotion=happiness&format=mp3&speaker=takeru&volume=200&speed=100&pitch=130";
-// char *tts_parms3 ="&emotion_level=4&emotion=anger&format=mp3&speaker=bear&volume=200&speed=120&pitch=100";
 void VoiceText_tts(char *text,char *tts_parms) {
-    file = new AudioFileSourceVoiceTextStream( text, tts_parms);
+    file = new AudioFileSourceVoiceTextStream(text, tts_parms);
     buff = new AudioFileSourceBuffer(file, preallocateBuffer, preallocateBufferSize);
     mp3->begin(buff, &out);
 }
@@ -440,15 +424,6 @@ void setup()
 void loop()
 {
   static int lastms = 0;
-
-  // if (Serial.available()) {
-  //   char kstr[256];
-  //   size_t len = Serial.readBytesUntil('\r', kstr, 256);
-  //   kstr[len]=0;
-  //   avatar.setExpression(Expression::Happy);
-  //   VoiceText_tts(kstr, tts_parms2);
-  //   avatar.setExpression(Expression::Neutral);
-	// }
 
   M5.update();
 #if defined(ARDUINO_M5STACK_Core2)
