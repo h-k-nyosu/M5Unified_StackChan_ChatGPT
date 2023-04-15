@@ -20,8 +20,8 @@
 
 #if defined(ESP32) || defined(ESP8266)
 
-#include "AudioFileSourceVoiceTextStream.h"
-#include "config.hpp"
+#include "AudioFileSourceVoiceTextStream/AudioFileSourceVoiceTextStream.h"
+#include "config/config.hpp"
 
 // #VoiceText Web API
 // You should get apikey
