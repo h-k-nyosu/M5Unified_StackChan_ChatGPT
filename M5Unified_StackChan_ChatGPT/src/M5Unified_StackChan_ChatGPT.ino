@@ -15,6 +15,7 @@
 #include "config/config.hpp"
 #include "my_http_handlers/my_http_handlers.h"
 #include "wifi_manager/wifi_manager.h"
+#include "voice_text_tts/voice_text_tts.h"
 
 const char *SSID = WIFI_SSID;
 const char *PASSWORD = WIFI_PASSWORD;
@@ -57,39 +58,13 @@ String speech_text_buffer = "";
 
 /// set M5Speaker virtual channel (0-7)
 static constexpr uint8_t m5spk_virtual_channel = 0;
-static AudioOutputM5Speaker out(&M5.Speaker, m5spk_virtual_channel);
+AudioOutputM5Speaker out(&M5.Speaker, m5spk_virtual_channel);
 AudioGeneratorMP3 *mp3;
 AudioFileSourceVoiceTextStream *file = nullptr;
 AudioFileSourceBuffer *buff = nullptr;
 const int preallocateBufferSize = 50*1024;
 uint8_t *preallocateBuffer;
 
-// Called when a metadata event occurs (i.e. an ID3 tag, an ICY block, etc.
-void MDCallback(void *cbData, const char *type, bool isUnicode, const char *string)
-{
-  const char *ptr = reinterpret_cast<const char *>(cbData);
-  (void) isUnicode; // Punt this ball for now
-  // Note that the type and string may be in PROGMEM, so copy them to RAM for printf
-  char s1[32], s2[64];
-  strncpy_P(s1, type, sizeof(s1));
-  s1[sizeof(s1)-1]=0;
-  strncpy_P(s2, string, sizeof(s2));
-  s2[sizeof(s2)-1]=0;
-  Serial.printf("METADATA(%s) '%s' = '%s'\n", ptr, s1, s2);
-  Serial.flush();
-}
-
-// Called when there's a warning or error (like a buffer underflow or decode hiccup)
-void StatusCallback(void *cbData, int code, const char *string)
-{
-  const char *ptr = reinterpret_cast<const char *>(cbData);
-  // Note that the string may be in PROGMEM, so copy it to RAM for printf
-  char s1[64];
-  strncpy_P(s1, string, sizeof(s1));
-  s1[sizeof(s1)-1]=0;
-  Serial.printf("STATUS(%s) '%d' = '%s'\n", ptr, code, s1);
-  Serial.flush();
-}
 
 #ifdef USE_SERVO
 #define START_DEGREE_VALUE_X 90
@@ -167,12 +142,6 @@ void Servo_setup() {
   servo_y.setEasingType(EASE_QUADRATIC_IN_OUT);
   setSpeedForAllServos(30);
 #endif
-}
-
-void VoiceText_tts(char *text,char *tts_parms) {
-    file = new AudioFileSourceVoiceTextStream(text, tts_parms);
-    buff = new AudioFileSourceBuffer(file, preallocateBuffer, preallocateBufferSize);
-    mp3->begin(buff, &out);
 }
 
 struct box_t
