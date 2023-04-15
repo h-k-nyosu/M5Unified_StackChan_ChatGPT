@@ -5,7 +5,7 @@
 #include <AudioFileSourceBuffer.h>
 #include <AudioGeneratorMP3.h>
 #include "AudioFileSourceVoiceTextStream/AudioFileSourceVoiceTextStream.h"
-#include "AudioOutputM5Speaker.h"
+#include "AudioOutputM5Speaker/AudioOutputM5Speaker.h"
 #include <ServoEasing.hpp> // https://github.com/ArminJo/ServoEasing       
 #include <HTTPClient.h>
 #include <WiFiClientSecure.h>
