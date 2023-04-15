@@ -15,6 +15,8 @@
 #include <ESP32WebServer.h>
 #include <ESPmDNS.h>
 #include "config/config.hpp"
+#include "my_http_handlers/my_http_handlers.h"
+#include "wifi_manager/wifi_manager.h"
 
 const char *SSID = WIFI_SSID;
 const char *PASSWORD = WIFI_PASSWORD;
@@ -38,7 +40,7 @@ const char *PASSWORD = WIFI_PASSWORD;
 using namespace m5avatar;
 Avatar avatar;
 
-ESP32WebServer server(80);
+// ESP32WebServer server(80);
 
 char *text1 = "みなさんこんにちは、私の名前はスタックチャンです、よろしくね。";
 char *tts_parms1 ="&emotion_level=4&emotion=happiness&format=mp3&speaker=takeru&volume=200&speed=100&pitch=130"; // he has natural(16kHz) wav voice
@@ -46,7 +48,7 @@ char *tts_parms2 ="&emotion=happiness&format=mp3&speaker=hikari&volume=200&speed
 char *tts_parms3 ="&emotion=anger&format=mp3&speaker=bear&volume=200&speed=120&pitch=100"; // he has natural(16kHz) wav voice
 
 // C++11 multiline string constants are neato...
-static const char HEAD[] PROGMEM = R"KEWL(
+const char HEAD[] = R"KEWL(
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -56,39 +58,6 @@ static const char HEAD[] PROGMEM = R"KEWL(
 
 String speech_text = "";
 String speech_text_buffer = "";
-
-void handleRoot() {
-  server.send(200, "text/plain", "hello from m5stack!");
-}
-
-void handleNotFound(){
-  String message = "File Not Found\n\n";
-  message += "URI: ";
-  message += server.uri();
-  message += "\nMethod: ";
-  message += (server.method() == HTTP_GET)?"GET":"POST";
-  message += "\nArguments: ";
-  message += server.args();
-  message += "\n";
-  for (uint8_t i=0; i<server.args(); i++){
-    message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
-  }
-//  server.send(404, "text/plain", message);
-  server.send(404, "text/html", String(HEAD) + String("<body>") + message + String("</body>"));
-}
-
-void handle_speech() {
-  String message = server.arg("say");
-//  message = message + "\n";
-  Serial.println(message);
-  ////////////////////////////////////////
-  // 音声の発声
-  ////////////////////////////////////////
-  avatar.setExpression(Expression::Happy);
-  VoiceText_tts((char*)message.c_str(),tts_parms2);
-  avatar.setExpression(Expression::Neutral);
-  server.send(200, "text/plain", String("OK"));
-}
 
 String https_post_json(const char* url, const char* json_string, const char* root_ca) {
   String payload = "";
@@ -169,32 +138,6 @@ String chatGpt(String json_string) {
     avatar.setExpression(Expression::Neutral);
   }
   return response;
-}
-
-void handle_chat() {
-  static String response = "";
-  String text = server.arg("text");
-  String json_string = "{\"model\": \"gpt-3.5-turbo\",\"messages\": [{\"role\": \"user\", \"content\": \"" + text + "\"}]}";
-
-  response = chatGpt(json_string);
-  speech_text = response;
-  server.send(200, "text/html", String(HEAD)+String("<body>")+response+String("</body>"));
-}
-
-void handle_face() {
-  String expression = server.arg("expression");
-  expression = expression + "\n";
-  Serial.println(expression);
-  switch (expression.toInt())
-  {
-    case 0: avatar.setExpression(Expression::Neutral); break;
-    case 1: avatar.setExpression(Expression::Happy); break;
-    case 2: avatar.setExpression(Expression::Sleepy); break;
-    case 3: avatar.setExpression(Expression::Doubt); break;
-    case 4: avatar.setExpression(Expression::Sad); break;
-    case 5: avatar.setExpression(Expression::Angry); break;  
-  } 
-  server.send(200, "text/plain", String("OK"));
 }
 
 /// set M5Speaker virtual channel (0-7)
@@ -386,19 +329,20 @@ void setup()
     M5.Lcd.println("MDNS responder started");
   }
   delay(1000);
-  server.on("/", handleRoot);
+//   server.on("/", handleRoot);
 
-  server.on("/inline", [](){
-    server.send(200, "text/plain", "this works as well");
-  });
+//   server.on("/inline", [](){
+//     server.send(200, "text/plain", "this works as well");
+//   });
 
   // And as regular external functions:
-  server.on("/speech", handle_speech);
-  server.on("/face", handle_face);
-  server.on("/chat", handle_chat);
-  server.onNotFound(handleNotFound);
+//   server.on("/speech", handle_speech);
+//   server.on("/face", handle_face);
+//   server.on("/chat", handle_chat);
+//   server.onNotFound(handleNotFound);
 
-  server.begin();
+//   server.begin();
+  wifiManagerSetup();
   Serial.println("HTTP server started");
   M5.Lcd.println("HTTP server started");  
   
@@ -417,7 +361,7 @@ void setup()
   avatar.addTask(servo, "servo");
   avatar.setSpeechFont(&fonts::efontJA_16);
 
-  M5.Speaker.setVolume(250);
+  M5.Speaker.setVolume(100);
   box_servo.setupBox(80, 120, 80, 80);
 }
 
@@ -437,7 +381,7 @@ void loop()
       if (box_servo.contain(t.x, t.y))
       {
         servo_home = !servo_home;
-        M5.Speaker.tone(1000, 100);
+        // M5.Speaker.tone(1000, 100);
       }
 #endif
     }
@@ -446,7 +390,7 @@ void loop()
 
   if (M5.BtnC.wasPressed())
   {
-    M5.Speaker.tone(1000, 100);
+    // M5.Speaker.tone(1000, 100);
     avatar.setExpression(Expression::Happy);
     VoiceText_tts(text1, tts_parms2);
     avatar.setExpression(Expression::Neutral);
@@ -498,7 +442,8 @@ void loop()
       }
     }
   } else {
-  server.handleClient();
+//   server.handleClient();
+    wifiManagerLoop();
   }
 //delay(100);
 }
