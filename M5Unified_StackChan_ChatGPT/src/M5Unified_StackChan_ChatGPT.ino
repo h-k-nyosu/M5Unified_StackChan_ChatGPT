@@ -40,8 +40,6 @@ const char *PASSWORD = WIFI_PASSWORD;
 using namespace m5avatar;
 Avatar avatar;
 
-// ESP32WebServer server(80);
-
 char *text1 = "みなさんこんにちは、私の名前はスタックチャンです、よろしくね。";
 char *tts_parms1 ="&emotion_level=4&emotion=happiness&format=mp3&speaker=takeru&volume=200&speed=100&pitch=130"; // he has natural(16kHz) wav voice
 char *tts_parms2 ="&emotion=happiness&format=mp3&speaker=hikari&volume=200&speed=120&pitch=130"; // he has natural(16kHz) wav voice
@@ -329,19 +327,6 @@ void setup()
     M5.Lcd.println("MDNS responder started");
   }
   delay(1000);
-//   server.on("/", handleRoot);
-
-//   server.on("/inline", [](){
-//     server.send(200, "text/plain", "this works as well");
-//   });
-
-  // And as regular external functions:
-//   server.on("/speech", handle_speech);
-//   server.on("/face", handle_face);
-//   server.on("/chat", handle_chat);
-//   server.onNotFound(handleNotFound);
-
-//   server.begin();
   wifiManagerSetup();
   Serial.println("HTTP server started");
   M5.Lcd.println("HTTP server started");  
@@ -442,7 +427,6 @@ void loop()
       }
     }
   } else {
-//   server.handleClient();
     wifiManagerLoop();
   }
 //delay(100);
